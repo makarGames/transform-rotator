@@ -1,8 +1,5 @@
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Game.Scripts.Utils.TransformRotating
 {
@@ -23,7 +20,8 @@ namespace Game.Scripts.Utils.TransformRotating
         [SerializeField] private float _rotationSpeed = 300f;
         [SerializeField] private Axis _rotationAxis = Axis.Up;
         [SerializeField] private bool _rotateByStart = false;
-        
+        [SerializeField] private UpdateType _updateType;
+
         private static readonly Dictionary<Axis, Vector3> EulerByAxis = new Dictionary<Axis, Vector3>()
         {
             { Axis.Back, Vector3.back },
@@ -34,21 +32,36 @@ namespace Game.Scripts.Utils.TransformRotating
             { Axis.Up, Vector3.up },
             { Axis.Zero, Vector3.zero },
         };
-        
+
         private Transform _cashedTransform;
         private bool _isRotating;
-        
+
         private void Awake()
         {
             _cashedTransform = transform;
-            _isRotating = _rotateByStart;
+        }
+
+        private void Start()
+        {
+            if (_rotateByStart)
+            {
+                StartRotate();
+            }
         }
 
         private void FixedUpdate()
         {
-            if (_isRotating)
+            if (_isRotating && _updateType == UpdateType.FixedUpdate)
             {
                 _cashedTransform.Rotate(EulerByAxis[_rotationAxis], Time.fixedDeltaTime * _rotationSpeed);
+            }
+        }
+
+        private void Update()
+        {
+            if (_isRotating && _updateType == UpdateType.Update)
+            {
+                _cashedTransform.Rotate(EulerByAxis[_rotationAxis], Time.deltaTime * _rotationSpeed);
             }
         }
 
@@ -62,26 +75,25 @@ namespace Game.Scripts.Utils.TransformRotating
             _rotationSpeed = speed;
         }
 
-#if UNITY_EDITOR
+        private void OnDisable()
+        {
+            StopRotate();
+        }
+        
         public void StartRotate()
         {
-            if (Application.isEditor && !_isRotating)
-            {
-                EditorApplication.update += FixedUpdate;
-            }
-
             EnableRotate(true);
         }
 
         public void StopRotate()
         {
-            if (Application.isEditor)
-            {
-                EditorApplication.update -= FixedUpdate;
-            }
-
             EnableRotate(false);
         }
-#endif
+    }
+
+    internal enum UpdateType
+    {
+        FixedUpdate,
+        Update
     }
 }
