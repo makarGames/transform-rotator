@@ -8,3 +8,5 @@ Simple transform rotator for any Unity GameObject
 * Attach sctipt TransformRotator to any GameObject
 * Customize it 
  <img src = "./screen.png">
+ 
+ Works in Edit Mode
